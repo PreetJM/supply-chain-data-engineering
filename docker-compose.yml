@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:15
+    container_name: supply_chain_db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB=supply_chain
+    ports:
+      - "5433:5432"
+
+  airflow-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow.Dockerfile
+    container_name: supply_chain_airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./transform:/opt/airflow/transform
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+    ports:
+      - "8080:8080"
+    command: standalone
+    depends_on:
+      - airflow-db
+      - database
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: supply_chain_bi
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database

@@ -1,0 +1,7 @@
+data/*.csv
+__pycache__/
+.env
+transform/logs/
+transform/target/
+logs/
+standalone_admin_password.txt
